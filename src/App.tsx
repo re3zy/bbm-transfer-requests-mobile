@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { client, useConfig, useElementData } from '@sigmacomputing/plugin';
+import { client, useConfig, useElementData, useActionTrigger } from '@sigmacomputing/plugin';
 import { SigmaConfig, SigmaData, MobileTransferRequest, formatNumber, formatDays, getStatusColor } from './types';
 import './App.css';
 
@@ -18,13 +18,15 @@ client.config.configureEditorPanel([
   { name: 'shortageCity', type: 'column', source: 'source', allowMultiple: false, label: 'Shortage City' },
   { name: 'shortageState', type: 'column', source: 'source', allowMultiple: false, label: 'Shortage State' },
   { name: 'requestedQty', type: 'column', source: 'source', allowMultiple: false, label: 'Requested QTY' },
-  { name: 'excessQty', type: 'column', source: 'source', allowMultiple: false, label: 'Excess QTY' }
+  { name: 'excessQty', type: 'column', source: 'source', allowMultiple: false, label: 'Excess QTY' },
+  { name: 'verifyInventoryAction', type: 'action-trigger', label: 'Verify Inventory Action' }
 ]);
 
 const App: React.FC = (): React.JSX.Element => {
   const config: SigmaConfig = useConfig();
   const sigmaData: SigmaData = useElementData(config.source || '');
   const [transfer, setTransfer] = useState<MobileTransferRequest | null>(null);
+  const triggerVerifyAction = useActionTrigger(config.verifyInventoryAction || '');
 
   // Parse transfer data from Sigma columns (first row only for mobile view)
   useEffect(() => {
@@ -81,6 +83,18 @@ const App: React.FC = (): React.JSX.Element => {
 
   const statusColor = getStatusColor(transfer.status);
 
+  // Handler for Verify Inventory button click
+  const handleVerifyInventory = () => {
+    if (transfer) {
+      console.log('Triggering verify inventory action with data:', transfer);
+      if (config.verifyInventoryAction) {
+        triggerVerifyAction();
+      } else {
+        console.warn('No action trigger configured for Verify Inventory');
+      }
+    }
+  };
+
   return (
     <div className="plugin-container">
       {/* Transfer Request Card */}
@@ -129,7 +143,7 @@ const App: React.FC = (): React.JSX.Element => {
       <div className="mobile-subtext">({formatDays(transfer.excessDays)} days supply)</div>
 
       {/* Action Buttons */}
-      <button className="mobile-btn mobile-btn-primary">
+      <button className="mobile-btn mobile-btn-primary" onClick={handleVerifyInventory}>
         Verify Inventory
       </button>
 

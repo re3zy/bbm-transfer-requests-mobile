@@ -32,6 +32,7 @@ export interface SigmaConfig {
   shortageState?: string;
   requestedQty?: string;
   excessQty?: string;
+  verifyInventoryAction?: string;
 }
 
 // Sigma data structure
